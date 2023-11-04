@@ -2,21 +2,24 @@ version: "3.9"
 services:
     wordpress:
         container_name: wordpress
-        image: wordpress:php8.1-apache
+        # image: wordpress:php8.1-apache
+        image: wordpress:latest
         restart: always
+        depends_on:
+            - db
         stdin_open: true
         tty: true
         environment:
-            WORDPRESS_DB_HOST: mariadb
+            WORDPRESS_DB_HOST: db
             WORDPRESS_DB_USER: db_user
             WORDPRESS_DB_PASSWORD: db_user_pass
             WORDPRESS_DB_NAME: db_name
         volumes:
             - wordpress_data:/var/www/html
             - ./wordpress:/var/www/html
-    mariadb:
-        container_name: mariadb
-        image: mariadb
+    db:
+        container_name: db
+        image: mysql:latest
         restart: always
         environment:
             MYSQL_DATABASE: db_name
@@ -25,10 +28,12 @@ services:
             MYSQL_RANDOM_ROOT_PASSWORD: 'root_pass'
         volumes:
             - db_data:/var/lib/mysql
-    nginx:
+    webserver:
         container_name: nginx
         image: nginx:latest
         restart: unless-stopped
+        depends_on:
+            - wordpress
         ports:
             - 80:80
             - 443:443
@@ -39,7 +44,9 @@ services:
     certbot:
         container_name: certbot
         image: certbot/certbot:latest
-        command: certonly --webroot --webroot-path=/var/www/html --staging --email info@gahanai.in --agree-tos --no-eff-email -d gahanai.in -d www.gahanai.in
+        depends_on:
+            - webserver
+        command: certonly --webroot --webroot-path=/var/www/html --email info@gahanai.in --agree-tos --no-eff-email -d gahanai.in -d www.gahanai.in
         volumes:
             - ./certbot/conf:/etc/letsencrypt
             - ./certbot/logs:/var/log/letsencrypt

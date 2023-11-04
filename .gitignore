@@ -45,6 +45,9 @@ wp-config.php
 #
 # Note: If you wish to whitelist themes,
 # uncomment the next line
-#/wp-content/themeswordpress
+#/wp-content/themes
+
+# Users Defined
+wordpress
 certbot
 .env
